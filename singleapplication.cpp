@@ -40,6 +40,13 @@ SINGLEAPPLICATION_CLASS::SINGLEAPPLICATION_CLASS( int &argc, char *argv[], bool 
 {
     Q_D(SingleApplication);
 
+#if defined(Q_OS_ANDROID) || defined(Q_OS_IOS)
+    // On Android and iOS since the library is not supported fallback to
+    // standard QApplication behaviour by simply returning at this point.
+    qWarning() << "SingleApplication is not supported on Android and iOS systems.";
+    return;
+#endif
+
     // Store the current mode of the program
     d->options = options;
 
