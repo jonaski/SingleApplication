@@ -3,12 +3,10 @@ set(CMAKE_CXX_STANDARD 11)
 
 include(Version.cmake)
 
-if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
-endif()
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --std=c++11 -U__STRICT_ANSI__ -Wall -Wextra -Wpedantic -Woverloaded-virtual -fpermissive")
 
-option(BUILD_SHARED_LIBS "Build shared library" ON)
+#option(BUILD_SHARED_LIBS "Build shared library" ON)
 
 if(NOT QAPPLICATION_CLASS)
   set(QAPPLICATION_CLASS "QApplication")
