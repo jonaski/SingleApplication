@@ -1,6 +1,8 @@
 SingleApplication
 =================
 
+![CI](https://github.com/itay-grudev/SingleApplication/workflows/CI:%20Build%20Test/badge.svg)
+
 This is a replacement of the QtSingleApplication for `Qt5`.
 
 Keeps the Primary Instance of your Application and kills each subsequent
@@ -203,6 +205,14 @@ qint64 SingleApplication::primaryPid()
 ```
 
 Returns the process ID (PID) of the primary instance.
+
+---
+
+```cpp
+QString SingleApplication::primaryUser()
+```
+
+Returns the username the primary instance is running as.
 
 ### Signals
 
