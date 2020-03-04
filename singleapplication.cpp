@@ -24,7 +24,6 @@
 #include <QtCore/QByteArray>
 #include <QtCore/QSharedMemory>
 
-#include "singleapplication.h"
 #include "singleapplication_p.h"
 
 /**
@@ -36,7 +35,7 @@
  * @param options Optional flags to toggle specific behaviour
  * @param timeout Maximum time blocking functions are allowed during app load
  */
-SingleApplication::SingleApplication( int &argc, char *argv[], bool allowSecondary, Options options, int timeout, const QString &userData )
+SINGLEAPPLICATION_CLASS::SINGLEAPPLICATION_CLASS( int &argc, char *argv[], bool allowSecondary, Options options, int timeout, const QString &userData )
     : app_t( argc, argv ), d_ptr( new SingleApplicationPrivate( this ) )
 {
     Q_D( SingleApplication );
@@ -162,7 +161,7 @@ SingleApplication::SingleApplication( int &argc, char *argv[], bool allowSeconda
     ::exit( EXIT_SUCCESS );
 }
 
-SingleApplication::~SingleApplication()
+SINGLEAPPLICATION_CLASS::~SINGLEAPPLICATION_CLASS()
 {
     Q_D( SingleApplication );
     delete d;
@@ -172,7 +171,7 @@ SingleApplication::~SingleApplication()
  * Checks if the current application instance is primary.
  * @return Returns true if the instance is primary, false otherwise.
  */
-bool SingleApplication::isPrimary()
+bool SINGLEAPPLICATION_CLASS::isPrimary()
 {
     Q_D( SingleApplication );
     return d->server != nullptr;
@@ -182,7 +181,7 @@ bool SingleApplication::isPrimary()
  * Checks if the current application instance is secondary.
  * @return Returns true if the instance is secondary, false otherwise.
  */
-bool SingleApplication::isSecondary()
+bool SINGLEAPPLICATION_CLASS::isSecondary()
 {
     Q_D( SingleApplication );
     return d->server == nullptr;
@@ -194,7 +193,7 @@ bool SingleApplication::isSecondary()
  * only incremented afterwards.
  * @return Returns a unique instance id.
  */
-quint32 SingleApplication::instanceId()
+quint32 SINGLEAPPLICATION_CLASS::instanceId()
 {
     Q_D( SingleApplication );
     return d->instanceNumber;
@@ -206,7 +205,7 @@ quint32 SingleApplication::instanceId()
  * specific APIs.
  * @return Returns the primary instance PID.
  */
-qint64 SingleApplication::primaryPid()
+qint64 SINGLEAPPLICATION_CLASS::primaryPid()
 {
     Q_D( SingleApplication );
     return d->primaryPid();
@@ -216,7 +215,7 @@ qint64 SingleApplication::primaryPid()
  * Returns the username the primary instance is running as.
  * @return Returns the username the primary instance is running as.
  */
-QString SingleApplication::primaryUser()
+QString SINGLEAPPLICATION_CLASS::primaryUser()
 {
     Q_D( SingleApplication );
     return d->primaryUser();
@@ -226,7 +225,7 @@ QString SingleApplication::primaryUser()
  * Returns the username the current instance is running as.
  * @return Returns the username the current instance is running as.
  */
-QString SingleApplication::currentUser()
+QString SINGLEAPPLICATION_CLASS::currentUser()
 {
     return SingleApplicationPrivate::getUsername();
 }
@@ -237,7 +236,7 @@ QString SingleApplication::currentUser()
  * @param timeout the maximum timeout in milliseconds for blocking functions.
  * @return true if the message was sent successfuly, false otherwise.
  */
-bool SingleApplication::sendMessage( const QByteArray &message, int timeout )
+bool SINGLEAPPLICATION_CLASS::sendMessage( const QByteArray &message, int timeout )
 {
     Q_D( SingleApplication );
 
@@ -258,7 +257,7 @@ bool SingleApplication::sendMessage( const QByteArray &message, int timeout )
  * Cleans up the shared memory block and exits with a failure.
  * This function halts program execution.
  */
-void SingleApplication::abortSafely()
+void SINGLEAPPLICATION_CLASS::abortSafely()
 {
     Q_D( SingleApplication );
 
@@ -267,7 +266,7 @@ void SingleApplication::abortSafely()
     ::exit( EXIT_FAILURE );
 }
 
-QStringList SingleApplication::userData()
+QStringList SINGLEAPPLICATION_CLASS::userData()
 {
     Q_D( SingleApplication );
     return d->appData();

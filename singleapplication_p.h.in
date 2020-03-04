@@ -35,7 +35,7 @@
 #include <QtCore/QSharedMemory>
 #include <QtNetwork/QLocalServer>
 #include <QtNetwork/QLocalSocket>
-#include "singleapplication.h"
+#include "@SINGLEAPPLICATION_NAME@.h"
 
 struct InstancesInfo {
     bool primary;
@@ -65,10 +65,10 @@ public:
         StageBody = 1,
         StageConnected = 2,
     };
-    Q_DECLARE_PUBLIC(SingleApplication)
+    Q_DECLARE_PUBLIC(SINGLEAPPLICATION_CLASS)
 
-    SingleApplicationPrivate( SingleApplication *q_ptr );
-    ~SingleApplicationPrivate() override;
+    SingleApplicationPrivate( SINGLEAPPLICATION_CLASS *q_ptr );
+     ~SingleApplicationPrivate() override;
 
     static QString getUsername();
     void genBlockServerName();
@@ -85,13 +85,13 @@ public:
     void addAppData(const QString &data);
     QStringList appData() const;
 
-    SingleApplication *q_ptr;
+    SINGLEAPPLICATION_CLASS *q_ptr;
     QSharedMemory *memory;
     QLocalSocket *socket;
     QLocalServer *server;
     quint32 instanceNumber;
     QString blockServerName;
-    SingleApplication::Options options;
+    SINGLEAPPLICATION_CLASS::Options options;
     QMap<QLocalSocket*, ConnectionInfo> connectionMap;
     QStringList appDataList;
 

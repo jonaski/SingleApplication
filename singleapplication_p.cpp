@@ -47,7 +47,6 @@
 #include <QtCore/QDateTime>
 #endif
 
-#include "singleapplication.h"
 #include "singleapplication_p.h"
 
 #ifdef Q_OS_UNIX
@@ -64,8 +63,8 @@
     #include <lmcons.h>
 #endif
 
-SingleApplicationPrivate::SingleApplicationPrivate( SingleApplication *q_ptr )
-    : q_ptr( q_ptr )
+SingleApplicationPrivate::SingleApplicationPrivate( SINGLEAPPLICATION_CLASS *_q_ptr )
+    : q_ptr( _q_ptr )
 {
     server = nullptr;
     socket = nullptr;
@@ -132,27 +131,27 @@ void SingleApplicationPrivate::genBlockServerName()
 {
     QCryptographicHash appData( QCryptographicHash::Sha256 );
     appData.addData( "SingleApplication", 17 );
-    appData.addData( SingleApplication::app_t::applicationName().toUtf8() );
-    appData.addData( SingleApplication::app_t::organizationName().toUtf8() );
-    appData.addData( SingleApplication::app_t::organizationDomain().toUtf8() );
+    appData.addData( SINGLEAPPLICATION_CLASS::app_t::applicationName().toUtf8() );
+    appData.addData( SINGLEAPPLICATION_CLASS::app_t::organizationName().toUtf8() );
+    appData.addData( SINGLEAPPLICATION_CLASS::app_t::organizationDomain().toUtf8() );
 
     if ( ! appDataList.isEmpty() )
         appData.addData( appDataList.join( "" ).toUtf8() );
 
-    if( ! (options & SingleApplication::Mode::ExcludeAppVersion) ){
-        appData.addData( SingleApplication::app_t::applicationVersion().toUtf8() );
+    if( ! (options & SINGLEAPPLICATION_CLASS::Mode::ExcludeAppVersion) ){
+        appData.addData( SINGLEAPPLICATION_CLASS::app_t::applicationVersion().toUtf8() );
     }
 
-    if( ! (options & SingleApplication::Mode::ExcludeAppPath) ){
+    if( ! (options & SINGLEAPPLICATION_CLASS::Mode::ExcludeAppPath) ){
 #ifdef Q_OS_WIN
-        appData.addData( SingleApplication::app_t::applicationFilePath().toLower().toUtf8() );
+        appData.addData( SINGLEAPPLICATION_CLASS::app_t::applicationFilePath().toLower().toUtf8() );
 #else
-        appData.addData( SingleApplication::app_t::applicationFilePath().toUtf8() );
+        appData.addData( SINGLEAPPLICATION_CLASS::app_t::applicationFilePath().toUtf8() );
 #endif
     }
 
     // User level block requires a user specific data in the hash
-    if( options & SingleApplication::Mode::User ){
+    if( options & SINGLEAPPLICATION_CLASS::Mode::User ){
         appData.addData( getUsername().toUtf8() );
     }
 
@@ -188,7 +187,7 @@ void SingleApplicationPrivate::startPrimary()
 
     // Restrict access to the socket according to the
     // SingleApplication::Mode::User flag on User level or no restrictions
-    if( options & SingleApplication::Mode::User ){
+    if( options & SINGLEAPPLICATION_CLASS::Mode::User ){
         server->setSocketOptions( QLocalServer::UserAccessOption );
     } else {
         server->setSocketOptions( QLocalServer::WorldAccessOption );
@@ -386,7 +385,7 @@ void SingleApplicationPrivate::readInitMessageHeader( QLocalSocket *sock )
 
 void SingleApplicationPrivate::readInitMessageBody( QLocalSocket *sock )
 {
-    Q_Q(SingleApplication);
+    Q_Q(SINGLEAPPLICATION_CLASS);
 
     if (!connectionMap.contains( sock )){
         return;
@@ -443,7 +442,7 @@ void SingleApplicationPrivate::readInitMessageBody( QLocalSocket *sock )
 
     if( connectionType == NewInstance ||
         ( connectionType == SecondaryInstance &&
-          options & SingleApplication::Mode::SecondaryNotification ) )
+          options & SINGLEAPPLICATION_CLASS::Mode::SecondaryNotification ) )
     {
         Q_EMIT q->instanceStarted();
     }
@@ -455,7 +454,7 @@ void SingleApplicationPrivate::readInitMessageBody( QLocalSocket *sock )
 
 void SingleApplicationPrivate::slotDataAvailable( QLocalSocket *dataSocket, quint32 instanceId )
 {
-    Q_Q(SingleApplication);
+    Q_Q(SINGLEAPPLICATION_CLASS);
     Q_EMIT q->receivedMessage( instanceId, dataSocket->readAll() );
 }
 

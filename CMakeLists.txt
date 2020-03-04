@@ -1,40 +1,92 @@
-cmake_minimum_required(VERSION 3.7.0)
+cmake_minimum_required(VERSION 3.0)
 
-project(SingleApplication LANGUAGES CXX)
+include(Version.cmake)
 
-set(CMAKE_AUTOMOC ON)
-
-add_library(${PROJECT_NAME} STATIC
-    singleapplication.cpp
-    singleapplication_p.cpp
-)
-add_library(${PROJECT_NAME}::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
-
-if(NOT QT_DEFAULT_MAJOR_VERSION)
-    set(QT_DEFAULT_MAJOR_VERSION 5 CACHE STRING "Qt version to use (5 or 6), defaults to 5")
+if(NOT QAPPLICATION_CLASS)
+  set(QAPPLICATION_CLASS "QApplication")
 endif()
 
-# Find dependencies
-set(QT_COMPONENTS Core Network)
-set(QT_LIBRARIES Qt${QT_DEFAULT_MAJOR_VERSION}::Core Qt${QT_DEFAULT_MAJOR_VERSION}::Network)
-
-if(QAPPLICATION_CLASS STREQUAL QApplication)
-    list(APPEND QT_COMPONENTS Widgets)
-    list(APPEND QT_LIBRARIES Qt${QT_DEFAULT_MAJOR_VERSION}::Widgets)
-elseif(QAPPLICATION_CLASS STREQUAL QGuiApplication)
-    list(APPEND QT_COMPONENTS Gui)
-    list(APPEND QT_LIBRARIES Qt${QT_DEFAULT_MAJOR_VERSION}::Gui)
+if (QAPPLICATION_CLASS STREQUAL "QApplication")
+  set(SINGLEAPPLICATION_NAME "singleapplication")
+  set(SINGLEAPPLICATION_CLASS "SingleApplication")
+elseif (QAPPLICATION_CLASS STREQUAL "QCoreApplication")
+  set(SINGLEAPPLICATION_NAME "singlecoreapplication")
+  set(SINGLEAPPLICATION_CLASS "SingleCoreApplication")
+elseif (QAPPLICATION_CLASS STREQUAL "QGuiApplication")
+  set(SINGLEAPPLICATION_NAME "singleguiapplication")
+  set(SINGLEAPPLICATION_CLASS "SingleGuiApplication")
 else()
-    set(QAPPLICATION_CLASS QCoreApplication)
+  message(FATAL_ERROR "Application class must be QApplication, QCoreApplication or QGuiApplication")
 endif()
 
-find_package(Qt${QT_DEFAULT_MAJOR_VERSION} COMPONENTS ${QT_COMPONENTS} REQUIRED)
+project(${SINGLEAPPLICATION_NAME})
 
-target_link_libraries(${PROJECT_NAME} PUBLIC ${QT_LIBRARIES})
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-if(WIN32)
-    target_link_libraries(${PROJECT_NAME} PRIVATE advapi32)
-endif()
+list(APPEND COMPILE_OPTIONS
+  $<$<COMPILE_LANGUAGE:C>:-std=c99>
+  $<$<COMPILE_LANGUAGE:CXX>:-std=c++11>
+  -Wall
+  -Wextra
+  -Wpedantic
+  -Wunused
+  -Wshadow
+  -Wundef
+  -Wuninitialized
+  -Wredundant-decls
+  -Wcast-align
+  -Winit-self
+  -Wmissing-include-dirs
+  -Wmissing-declarations
+  -Wstrict-overflow=2
+  -Wunused-parameter
+  -Wformat=2
+  -Wdisabled-optimization
+  $<$<COMPILE_LANGUAGE:CXX>:-Woverloaded-virtual>
+  $<$<COMPILE_LANGUAGE:CXX>:-Wno-old-style-cast>
+  $<$<COMPILE_LANGUAGE:CXX>:-fpermissive>
+)
 
-target_compile_definitions(${PROJECT_NAME} PUBLIC QAPPLICATION_CLASS=${QAPPLICATION_CLASS})
-target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+option(BUILD_WERROR "Build with -Werror" OFF)
+if(BUILD_WERROR)
+  list(APPEND COMPILE_OPTIONS -Werror)
+endif(BUILD_WERROR)
+
+add_compile_options(${COMPILE_OPTIONS})
+
+set(LIB_SUFFIX "" CACHE STRING "Define suffix of directory name (32/64)")
+set(BIN_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/bin" CACHE PATH "The subdirectory to the binaries prefix (default prefix/bin)")
+set(LIB_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/lib${LIB_SUFFIX}" CACHE PATH "The subdirectory relative to the install prefix where libraries will be installed (default is /lib${LIB_SUFFIX})")
+set(INCLUDE_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/include" CACHE PATH "The subdirectory to the header prefix")
+
+include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+include_directories(${CMAKE_CURRENT_BINARY_DIR})
+configure_file("${CMAKE_CURRENT_SOURCE_DIR}/singleapplication.h.in" "${CMAKE_CURRENT_BINARY_DIR}/${SINGLEAPPLICATION_NAME}.h" @ONLY)
+configure_file("${CMAKE_CURRENT_SOURCE_DIR}/singleapplication_p.h.in" "${CMAKE_CURRENT_BINARY_DIR}/singleapplication_p.h" @ONLY)
+configure_file("${CMAKE_CURRENT_SOURCE_DIR}/singleapplication.pc.cmake" "${CMAKE_CURRENT_BINARY_DIR}/${SINGLEAPPLICATION_NAME}.pc" @ONLY)
+
+set(QT_MIN_VERSION 5.5)
+find_package(Qt5 ${QT_MIN_VERSION} REQUIRED COMPONENTS Core Widgets Network)
+
+set(SINGLEAPP-SOURCES singleapplication.cpp singleapplication_p.cpp)
+set(SINGLEAPP-MOC-HEADERS ${CMAKE_CURRENT_BINARY_DIR}/${SINGLEAPPLICATION_NAME}.h ${CMAKE_CURRENT_BINARY_DIR}/singleapplication_p.h)
+QT5_WRAP_CPP(SINGLEAPP-SOURCES-MOC ${SINGLEAPP-MOC-HEADERS})
+add_library(${SINGLEAPPLICATION_NAME} ${SINGLEAPP-SOURCES} ${SINGLEAPP-SOURCES-MOC})
+target_link_libraries(${SINGLEAPPLICATION_NAME} Qt5::Core Qt5::Widgets Qt5::Network)
+
+install(FILES "${CMAKE_CURRENT_BINARY_DIR}/${SINGLEAPPLICATION_NAME}.pc" DESTINATION "${LIB_INSTALL_DIR}/pkgconfig")
+
+set_target_properties(${SINGLEAPPLICATION_NAME} PROPERTIES
+  VERSION ${SINGLEAPPLICATION_SOVERSION_MAJOR}.${SINGLEAPPLICATION_SOVERSION_MINOR}.${SINGLEAPPLICATION_SOVERSION_PATCH}
+  SOVERSION ${SINGLEAPPLICATION_SOVERSION_MAJOR}
+  INSTALL_NAME_DIR ${LIB_INSTALL_DIR}
+  DEFINE_SYMBOL MAKE_SINGLEAPPLICATION_LIB
+  LINK_INTERFACE_LIBRARIES ""
+  PUBLIC_HEADER "${CMAKE_CURRENT_BINARY_DIR}/${SINGLEAPPLICATION_NAME}.h"
+)
+
+install(TARGETS ${SINGLEAPPLICATION_NAME}
+  LIBRARY DESTINATION ${LIB_INSTALL_DIR}
+  PUBLIC_HEADER DESTINATION ${INCLUDE_INSTALL_DIR}
+)
